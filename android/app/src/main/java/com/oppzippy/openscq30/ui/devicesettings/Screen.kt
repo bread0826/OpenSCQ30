@@ -11,6 +11,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed class Screen {
     @Serializable
+    data object Dashboard
+
+    @Serializable
+    data object AppSettings
+
+    @Serializable
     data object ScreenSelection
 
     @Serializable

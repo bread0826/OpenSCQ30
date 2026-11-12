@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -32,19 +33,25 @@ import com.oppzippy.openscq30.lib.wrapper.QuickPreset
 import com.oppzippy.openscq30.lib.wrapper.Setting
 import com.oppzippy.openscq30.lib.wrapper.Value
 import com.oppzippy.openscq30.ui.devicesettings.screens.CategorySelectionScreen
+import com.oppzippy.openscq30.ui.devicesettings.screens.ConnectedDeviceScreen
 import com.oppzippy.openscq30.ui.devicesettings.screens.Disconnected
 import com.oppzippy.openscq30.ui.devicesettings.screens.EditQuickPresetPage
 import com.oppzippy.openscq30.ui.devicesettings.screens.MigrateLegacyEqualizerProfilesScreen
 import com.oppzippy.openscq30.ui.devicesettings.screens.QuickPresetsScreen
 import com.oppzippy.openscq30.ui.devicesettings.screens.SettingCategoryScreen
 import com.oppzippy.openscq30.ui.devicesettings.screens.StatusNotificationScreen
+import com.oppzippy.openscq30.ui.settings.SettingsPage
+import com.oppzippy.openscq30.ui.theme.OpenSCQ30Theme
 import com.oppzippy.openscq30.ui.utils.Loading
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun DeviceSettingsScreen(
     onBack: () -> Unit = {},
     connectionStatus: ConnectionStatus,
+    darkTheme: Boolean,
+    onSoundMode: (String) -> Job,
     setSettingValues: (settingValues: List<Pair<String, Value>>) -> Unit,
     allSettingsFlow: Flow<List<Pair<String, Setting>>>,
     categoryIdsFlow: Flow<List<String>>,
@@ -66,6 +73,8 @@ fun DeviceSettingsScreen(
         is ConnectionStatus.Connected -> {
             DeviceSettingsNavigationScreen(
                 connectionStatus = connectionStatus,
+                darkTheme = darkTheme,
+                onSoundMode = onSoundMode,
                 onBack = onBack,
                 setSettingValues = setSettingValues,
                 allSettingsFlow = allSettingsFlow,
@@ -98,6 +107,8 @@ fun DeviceSettingsScreen(
 @Composable
 private fun DeviceSettingsNavigationScreen(
     connectionStatus: ConnectionStatus.Connected,
+    darkTheme: Boolean,
+    onSoundMode: (String) -> Job,
     onBack: () -> Unit = {},
     setSettingValues: (settingValues: List<Pair<String, Value>>) -> Unit,
     categoryIdsFlow: Flow<List<String>>,
@@ -130,54 +141,64 @@ private fun DeviceSettingsNavigationScreen(
         Pair(it.baseRoute::class.qualifiedName!!, it.name.translated())
     }
 
+    val deviceModel = connectionStatus.deviceManager.device.model()
+    val deviceName = connectionStatus.deviceManager.displayName ?: translateDeviceModel(deviceModel)
     val navController = rememberNavController()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val showToolbar = backStackEntry?.destination?.let {
+        !it.hasRoute<Screen.Dashboard>() && !it.hasRoute<Screen.AppSettings>()
+    } == true
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    val backStackEntry = navController.currentBackStackEntryAsState().value
-                    if (backStackEntry != null) {
-                        val routeName =
-                            backStackEntry.destination.route?.let { routeNames[it] }
-                        val settingsCategory = try {
-                            translateCategoryId(backStackEntry.toRoute<Screen.SettingsCategory>().categoryId)
-                        } catch (_: Exception) {
-                            null
-                        }
-                        val editQuickPreset = try {
-                            backStackEntry.toRoute<Screen.EditQuickPreset>().name
-                        } catch (_: Exception) {
-                            null
-                        }
-                        val modelName = translateDeviceModel(connectionStatus.deviceManager.device.model())
-
-                        Text(routeName ?: settingsCategory ?: editQuickPreset ?: modelName)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            val isAtTopOfStack = !navController.popBackStack()
-                            if (isAtTopOfStack) {
-                                onBack()
+            if (showToolbar) {
+                TopAppBar(
+                    title = {
+                        backStackEntry?.let { entry ->
+                            val routeName =
+                                entry.destination.route?.let { routeNames[it] }
+                            val settingsCategory = try {
+                                translateCategoryId(entry.toRoute<Screen.SettingsCategory>().categoryId)
+                            } catch (_: Exception) {
+                                null
                             }
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back_24px),
-                            contentDescription = stringResource(R.string.back),
-                        )
-                    }
-                },
-            )
+                            val editQuickPreset = try {
+                                entry.toRoute<Screen.EditQuickPreset>().name
+                            } catch (_: Exception) {
+                                null
+                            }
+                            val title = if (entry.destination.hasRoute<Screen.ScreenSelection>()) {
+                                stringResource(R.string.studio_more_settings)
+                            } else {
+                                routeName ?: settingsCategory ?: editQuickPreset ?: deviceName
+                            }
+                            Text(title)
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                val isAtTopOfStack = !navController.popBackStack()
+                                if (isAtTopOfStack) {
+                                    onBack()
+                                }
+                            },
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_back_24px),
+                                contentDescription = stringResource(R.string.back),
+                            )
+                        }
+                    },
+                )
+            }
         },
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.ScreenSelection,
+            startDestination = Screen.Dashboard,
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 8.dp),
+                .padding(horizontal = if (showToolbar) 8.dp else 0.dp),
             enterTransition = {
                 slideInHorizontally { width -> width / 2 } + fadeIn()
             },
@@ -191,6 +212,29 @@ private fun DeviceSettingsNavigationScreen(
                 slideOutHorizontally { width -> width / 2 } + fadeOut()
             },
         ) {
+            composable<Screen.Dashboard> {
+                val settings by allSettingsFlow.collectAsState(emptyList())
+                OpenSCQ30Theme(darkTheme = darkTheme, dynamicColor = false) {
+                    ConnectedDeviceScreen(
+                        deviceName = deviceName,
+                        deviceModel = deviceModel,
+                        settings = settings.toMap(),
+                        categories = categoryIds,
+                        darkTheme = darkTheme,
+                        onSettings = { navController.navigate(Screen.AppSettings) { launchSingleTop = true } },
+                        onCategory = { id ->
+                            navController.navigate(Screen.SettingsCategory(id)) { launchSingleTop = true }
+                        },
+                        onMoreSettings = { navController.navigate(Screen.ScreenSelection) { launchSingleTop = true } },
+                        onSoundMode = onSoundMode,
+                    )
+                }
+            }
+
+            composable<Screen.AppSettings> {
+                SettingsPage(onBackClick = { navController.popBackStack() })
+            }
+
             composable<Screen.ScreenSelection> {
                 CategorySelectionScreen(
                     screens = listedScreens,
@@ -206,7 +250,7 @@ private fun DeviceSettingsNavigationScreen(
                 val route = backStackEntry.toRoute<Screen.SettingsCategory>()
                 val settings by getSettingsInCategoryFlow(route.categoryId).collectAsState(emptyList())
                 SettingCategoryScreen(
-                    deviceModel = connectionStatus.deviceManager.device.model(),
+                    deviceModel = deviceModel,
                     categoryId = route.categoryId,
                     settings = settings,
                     setSettings = setSettingValues,

@@ -147,9 +147,9 @@ class DeviceSettingsManager(
         coroutineScope.cancel()
     }
 
-    fun setSettingValues(settingValues: List<Pair<String, Value>>) {
+    fun setSettingValues(settingValues: List<Pair<String, Value>>): Job {
         Log.v(TAG, "Setting settings: $settingValues")
-        coroutineScope.launch {
+        return coroutineScope.launch {
             try {
                 device.setSettingValues(
                     settingValues.map { (settingId, value) ->

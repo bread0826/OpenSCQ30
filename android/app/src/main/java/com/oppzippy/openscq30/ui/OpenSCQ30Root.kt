@@ -25,14 +25,17 @@ import com.oppzippy.openscq30.features.preferences.prefersDynamicColor
 import com.oppzippy.openscq30.features.soundcoredevice.service.ConnectionStatus
 import com.oppzippy.openscq30.ui.deviceselection.DeviceSelectionScreen
 import com.oppzippy.openscq30.ui.devicesettings.DeviceSettingsScreen
+import com.oppzippy.openscq30.lib.wrapper.toValue
+import com.oppzippy.openscq30.ui.devicesettings.screens.AMBIENT_SOUND_MODE
 import com.oppzippy.openscq30.ui.theme.OpenSCQ30Theme
 import com.oppzippy.openscq30.ui.utils.Loading
 
 @Composable
 fun OpenSCQ30Root(viewModel: OpenSCQ30RootViewModel = hiltViewModel()) {
     viewModel.toastHandler.Show()
+    val darkTheme = prefersDarkTheme()
     OpenSCQ30Theme(
-        darkTheme = prefersDarkTheme(),
+        darkTheme = darkTheme,
         dynamicColor = prefersDynamicColor(),
     ) {
         Surface(
@@ -71,6 +74,10 @@ fun OpenSCQ30Root(viewModel: OpenSCQ30RootViewModel = hiltViewModel()) {
                         if (deviceSettings != null) {
                             DeviceSettingsScreen(
                                 connectionStatus = connectionStatus,
+                                darkTheme = darkTheme,
+                                onSoundMode = { mode ->
+                                    deviceSettings.setSettingValues(listOf(AMBIENT_SOUND_MODE to mode.toValue()))
+                                },
                                 onBack = { viewModel.stopDeviceService() },
                                 setSettingValues = { deviceSettings.setSettingValues(it) },
                                 allSettingsFlow = deviceSettings.allSettingsFlow,

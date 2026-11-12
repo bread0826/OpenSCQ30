@@ -18,6 +18,7 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.oppzippy.openscq30.R
+import com.oppzippy.openscq30.features.soundcoredevice.AndroidRfcommConnectionBackendImpl
 import com.oppzippy.openscq30.features.soundcoredevice.connectionBackends
 import com.oppzippy.openscq30.features.statusnotification.storage.FeaturedSettingSlotDao
 import com.oppzippy.openscq30.features.statusnotification.storage.QuickPresetSlotDao
@@ -218,7 +219,17 @@ class DeviceService : LifecycleService() {
                         connectionBackends(applicationContext, lifecycleScope),
                         macAddress,
                     )
-                    connectionStatusFlow.value = ConnectionStatus.Connected(DeviceConnectionManager(device))
+                    val displayName = try {
+                        AndroidRfcommConnectionBackendImpl(applicationContext, lifecycleScope)
+                            .devices()
+                            .firstOrNull { it.macAddress.equals(macAddress, ignoreCase = true) }
+                            ?.name
+                            ?.takeUnless { it.isBlank() || it == getString(R.string.unknown) }
+                    } catch (ex: OpenScq30Exception) {
+                        Log.w(TAG, "Unable to read the Bluetooth device name", ex)
+                        null
+                    }
+                    connectionStatusFlow.value = ConnectionStatus.Connected(DeviceConnectionManager(device, displayName))
                 } catch (ex: OpenScq30Exception) {
                     Log.w(TAG, "error connecting to device", ex)
                     Toast.makeText(applicationContext, R.string.error_connecting, Toast.LENGTH_SHORT).show()

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -63,8 +64,9 @@ private fun Settings(
             onCheckedChange = { onAutoConnectChange(it) },
         )
 
+        Text(stringResource(R.string.appearance), style = MaterialTheme.typography.titleMedium)
         val themes = listOf(
-            null to stringResource(R.string.system_theme),
+            null to stringResource(R.string.studio_system),
             ThemeType.Light to stringResource(R.string.light),
             ThemeType.Dark to stringResource(R.string.dark),
         )
@@ -78,9 +80,13 @@ private fun Settings(
         // Android 12+ is required for Material You dynamic color. The setting will have no effect otherwise.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             LabeledSwitch(
-                label = stringResource(R.string.dynamic_color),
+                label = stringResource(R.string.studio_material_you),
                 isChecked = dynamicColorEnabled,
                 onCheckedChange = { onDynamicColorChange(it) },
+            )
+            Text(
+                stringResource(R.string.studio_dynamic_color_summary),
+                style = MaterialTheme.typography.bodySmall,
             )
         }
 

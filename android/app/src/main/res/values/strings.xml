@@ -117,4 +117,19 @@
     <string name="visible_settings">Visible Settings</string>
     <string name="appearance">Appearance</string>
     <string name="compact_layout">Compact Layout</string>
+    <string name="studio_anc">ANC</string>
+    <string name="studio_normal">Normal</string>
+    <string name="studio_transparency">Transparency</string>
+    <string name="studio_equaliser">Equaliser</string>
+    <string name="studio_controls">Controls</string>
+    <string name="studio_more_settings">More device settings</string>
+    <string name="studio_sound_mode_settings">Sound mode settings</string>
+    <string name="studio_battery_left">Left earbud</string>
+    <string name="studio_battery_right">Right earbud</string>
+    <string name="studio_battery_case">Case</string>
+    <string name="studio_battery">Battery</string>
+    <string name="studio_battery_unavailable">Unavailable</string>
+    <string name="studio_dynamic_color_summary">Use wallpaper colours on supported screens. The connected device screen uses its own palette.</string>
+    <string name="studio_material_you">Material You</string>
+    <string name="studio_system">System</string>
 </resources>
