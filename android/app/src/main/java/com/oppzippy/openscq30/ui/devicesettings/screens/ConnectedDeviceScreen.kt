@@ -282,7 +282,11 @@ internal fun ConnectedDeviceScreen(
                 }
                 val settingsLinks: @Composable (Modifier) -> Unit = { modifier ->
                     if (SOUND_MODES in categories && modes.isNotEmpty()) {
-                        TextButton(onClick = { onCategory(SOUND_MODES) }, modifier = modifier, colors = textButtonColors) {
+                        TextButton(
+                            onClick = { onCategory(SOUND_MODES) },
+                            modifier = modifier,
+                            colors = textButtonColors,
+                        ) {
                             Text(stringResource(R.string.studio_sound_mode_settings), textAlign = TextAlign.Center)
                         }
                     }
