@@ -34,7 +34,8 @@ jobs:
             tools="$(dirname "${manager:?Android SDK manager was not found}")"
           fi
           echo "$tools" >> "$GITHUB_PATH"
-          "$tools/sdkmanager" "emulator" "system-images;android-36;google_apis;x86_64"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          "$tools/sdkmanager" "platform-tools" "emulator" "system-images;android-36;google_apis;x86_64"
 
       - name: Start Android emulator
         run: |
@@ -43,7 +44,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           echo no | avdmanager create avd --force --name studio-white --package "system-images;android-36;google_apis;x86_64"
           nohup "$ANDROID_HOME/emulator/emulator" -avd studio-white -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect >"$RUNNER_TEMP/emulator.log" 2>&1 </dev/null &
-          timeout 180 adb wait-for-device
+          timeout 180 adb wait-for-device || { cat "$RUNNER_TEMP/emulator.log"; exit 1; }
           timeout 180 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'
           adb shell wm size 900x1920
           adb shell wm density 360
@@ -53,8 +54,16 @@ jobs:
       - name: Verify Liberty 4 NC demo and capture both themes
         working-directory: android
         run: |
-          ./gradlew connectedX86_64DebugAndroidTest \
-            -Pandroid.testInstrumentationRunnerArguments.class=com.oppzippy.openscq30.StudioWhiteDemoTest
+          ./gradlew assembleX86_64Debug assembleX86_64DebugAndroidTest
+          app_apk="$(find app/build/outputs/apk/x86_64/debug -name '*.apk' -type f)"
+          test_apk="$(find app/build/outputs/apk/androidTest -name '*.apk' -type f)"
+          adb install -g "$app_apk"
+          adb install "$test_apk"
+          runner="$(adb shell pm list instrumentation | sed -n 's/^instrumentation:\([^ ]*\) (target=com\.oppzippy\.openscq30\.debug).*$/\1/p')"
+          mkdir -p ../studio-white-screenshots
+          adb shell am instrument -w -r -e class com.oppzippy.openscq30.StudioWhiteDemoTest "$runner" \
+            | tee ../studio-white-screenshots/instrumentation.log
+          grep -Eq '^OK \([1-9][0-9]* tests?\)' ../studio-white-screenshots/instrumentation.log
 
       - name: Collect screenshots
         if: always()
@@ -72,6 +81,4 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: studio-white-demo
-          path: |
-            studio-white-screenshots
-            android/app/build/reports/androidTests/connected
+          path: studio-white-screenshots
