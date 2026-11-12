@@ -4,7 +4,7 @@ This project is a Nothing OS inspired remix of the original [OpenSCQ30](https://
 
 ### Screenshot
 
-![OpenSCQ30 desktop screenshot](screenshots/gui-sound-modes.png)
+![OpenSCQ30 desktop screenshot](screenshots/nothingOsinspired_main.png)
 
 ### Supported Platforms
 
