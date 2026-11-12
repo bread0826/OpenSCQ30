@@ -14,6 +14,7 @@ import com.oppzippy.openscq30.actions.addAndConnectToDemoDevice
 import com.oppzippy.openscq30.lib.bindings.translateCategoryId
 import com.oppzippy.openscq30.lib.bindings.translateDeviceModel
 import dagger.hilt.android.testing.HiltAndroidTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -23,17 +24,17 @@ class StudioWhiteDemoTest : OpenSCQ30RootTestBase() {
     fun libertyDashboard() {
         addAndConnectToDemoDevice(composeRule, translateDeviceModel("SoundcoreA3947"))
         selectMode(R.string.studio_anc)
-        checkBattery(R.string.studio_battery_left, "40%")
-        checkBattery(R.string.studio_battery_right, "80%")
-        checkBattery(R.string.studio_battery_case, "40%")
+        checkBattery(R.string.studio_battery_left, "0%")
+        checkBattery(R.string.studio_battery_right, "0%")
+        checkBattery(R.string.studio_battery_case, "0%")
         selectMode(R.string.studio_normal)
         selectMode(R.string.studio_transparency)
         selectMode(R.string.studio_anc)
 
         chooseTheme(R.string.light)
-        capture("studio-white-light.png")
+        capture("studio-white-light.png", 0xF7F2ED)
         chooseTheme(R.string.dark)
-        capture("studio-white-dark.png")
+        capture("studio-white-dark.png", 0x141414)
 
         openShortcut(R.string.studio_equaliser, "equalizer")
         openShortcut(R.string.studio_controls, "buttonConfiguration")
@@ -50,7 +51,7 @@ class StudioWhiteDemoTest : OpenSCQ30RootTestBase() {
     }
 
     private fun checkBattery(label: Int, value: String) {
-        composeRule.onNodeWithContentDescription("${getString(label)}, $value").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("${getString(label)}, $value").performScrollTo().assertIsDisplayed()
     }
 
     private fun selectMode(label: Int) {
@@ -78,10 +79,11 @@ class StudioWhiteDemoTest : OpenSCQ30RootTestBase() {
         composeRule.onNodeWithContentDescription(getString(R.string.back)).performClick()
     }
 
-    private fun capture(name: String) {
+    private fun capture(name: String, surface: Int) {
         composeRule.onNodeWithContentDescription(getString(R.string.settings)).performScrollTo()
         composeRule.waitForIdle()
         val screenshot = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
+        assertEquals(surface, screenshot.getPixel(8, screenshot.height / 3) and 0xFFFFFF)
         composeRule.activity.openFileOutput(name, 0).use {
             assertTrue(screenshot.compress(Bitmap.CompressFormat.PNG, 100, it))
         }

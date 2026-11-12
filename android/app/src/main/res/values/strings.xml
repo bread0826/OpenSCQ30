@@ -126,6 +126,8 @@
     <string name="studio_sound_mode_settings">Sound mode settings</string>
     <string name="studio_battery_left">Left earbud</string>
     <string name="studio_battery_right">Right earbud</string>
+    <string name="studio_left_short">L</string>
+    <string name="studio_right_short">R</string>
     <string name="studio_battery_case">Case</string>
     <string name="studio_battery">Battery</string>
     <string name="studio_battery_unavailable">Unavailable</string>

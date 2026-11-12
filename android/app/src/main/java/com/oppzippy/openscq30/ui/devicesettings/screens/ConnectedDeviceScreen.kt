@@ -24,6 +24,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -72,9 +74,14 @@ private enum class NoiseMode(val deviceValue: String, @param:StringRes val label
     Transparency("Transparency", R.string.studio_transparency),
 }
 
-private enum class BatteryReading(val id: String, @param:StringRes val label: Int, @param:DrawableRes val icon: Int) {
-    Left("batteryLevelLeft", R.string.studio_battery_left, R.drawable.earbuds_2_24px),
-    Right("batteryLevelRight", R.string.studio_battery_right, R.drawable.earbuds_2_24px),
+private enum class BatteryReading(
+    val id: String,
+    @param:StringRes val label: Int,
+    @param:DrawableRes val icon: Int,
+    @param:StringRes val shortLabel: Int = label,
+) {
+    Left("batteryLevelLeft", R.string.studio_battery_left, R.drawable.earbuds_2_24px, R.string.studio_left_short),
+    Right("batteryLevelRight", R.string.studio_battery_right, R.drawable.earbuds_2_24px, R.string.studio_right_short),
     Case("caseBatteryLevel", R.string.studio_battery_case, R.drawable.earbud_case_24px),
     Device("batteryLevel", R.string.studio_battery, R.drawable.devices_other_24px),
 }
@@ -94,6 +101,7 @@ internal fun ConnectedDeviceScreen(
     val isLiberty = deviceModel == LIBERTY_4_NC
     val colorScheme = MaterialTheme.colorScheme
     val accent = Color(0xFFF33D1D)
+    val textButtonColors = ButtonDefaults.textButtonColors(contentColor = colorScheme.onSurface)
     val mode = settings[AMBIENT_SOUND_MODE] as? Setting.SelectSetting
     val modes = NoiseMode.entries.filter { it.deviceValue in mode?.setting?.options.orEmpty() }
     var pendingWrite by remember(deviceModel) { mutableStateOf<Job?>(null) }
@@ -152,10 +160,11 @@ internal fun ConnectedDeviceScreen(
                         Image(
                             painterResource(R.drawable.liberty_4_nc_studio),
                             contentDescription = null,
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .widthIn(max = 390.dp)
                                 .fillMaxWidth()
-                                .aspectRatio(1.082f),
+                                .aspectRatio(0.98f),
                         )
                     } else {
                         Icon(
@@ -184,7 +193,8 @@ internal fun ConnectedDeviceScreen(
                             BatteryGauge(
                                 battery,
                                 (settings[battery.id] as? Setting.InformationSetting)?.value,
-                                Modifier.weight(1f),
+                                compact = !stackControls,
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
@@ -271,11 +281,15 @@ internal fun ConnectedDeviceScreen(
                     }
                 }
                 if (SOUND_MODES in categories && modes.isNotEmpty()) {
-                    TextButton(onClick = { onCategory(SOUND_MODES) }, modifier = Modifier.fillMaxWidth()) {
+                    TextButton(
+                        onClick = { onCategory(SOUND_MODES) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = textButtonColors,
+                    ) {
                         Text(stringResource(R.string.studio_sound_mode_settings))
                     }
                 }
-                TextButton(onClick = onMoreSettings, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = onMoreSettings, modifier = Modifier.fillMaxWidth(), colors = textButtonColors) {
                     Text(stringResource(R.string.studio_more_settings))
                 }
             }
@@ -284,7 +298,7 @@ internal fun ConnectedDeviceScreen(
 }
 
 @Composable
-private fun BatteryGauge(battery: BatteryReading, rawValue: String?, modifier: Modifier = Modifier) {
+private fun BatteryGauge(battery: BatteryReading, rawValue: String?, compact: Boolean, modifier: Modifier = Modifier) {
     val parts = rawValue?.split('/', limit = 2).orEmpty()
     val level = parts.getOrNull(0)?.toIntOrNull()
     val maximum = parts.getOrNull(1)?.toIntOrNull()
@@ -308,9 +322,10 @@ private fun BatteryGauge(battery: BatteryReading, rawValue: String?, modifier: M
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(painterResource(battery.icon), contentDescription = null, Modifier.size(18.dp))
+            if (compact) Text(stringResource(battery.shortLabel), style = MaterialTheme.typography.bodyMedium)
             Text(percent ?: "—", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
         }
-        Text(label, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
+        if (!compact) Text(label, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
         Box(
             Modifier
                 .widthIn(max = 78.dp)
@@ -337,6 +352,7 @@ private fun DeviceShortcut(@StringRes label: Int, @DrawableRes icon: Int, modifi
         onClick = onClick,
         modifier = modifier.heightIn(min = 54.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(7.dp),

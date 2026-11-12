@@ -7,6 +7,7 @@ on:
       - codex/studio-white
     paths:
       - .github/workflows/studio-white-demo.yml
+      - android/**
 
 permissions:
   contents: read
@@ -26,7 +27,14 @@ jobs:
           arch: x86_64
 
       - name: Install emulator system image
-        run: sdkmanager "emulator" "system-images;android-36;google_apis;x86_64"
+        run: |
+          tools="$ANDROID_HOME/cmdline-tools/latest/bin"
+          if [ ! -x "$tools/sdkmanager" ]; then
+            manager="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | sort -V | tail -n 1)"
+            tools="$(dirname "${manager:?Android SDK manager was not found}")"
+          fi
+          echo "$tools" >> "$GITHUB_PATH"
+          "$tools/sdkmanager" "emulator" "system-images;android-36;google_apis;x86_64"
 
       - name: Start Android emulator
         run: |

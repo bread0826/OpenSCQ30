@@ -32,6 +32,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,12 +43,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.lifecycle.lifecycleScope
 import com.oppzippy.openscq30.R
+import com.oppzippy.openscq30.features.preferences.prefersDarkTheme
+import com.oppzippy.openscq30.features.preferences.prefersDynamicColor
 import com.oppzippy.openscq30.features.soundcoredevice.service.ConnectionStatus
 import com.oppzippy.openscq30.features.soundcoredevice.service.DeviceService
 import com.oppzippy.openscq30.lib.bindings.OpenScq30Session
@@ -135,6 +139,12 @@ class SettingWidgetConfigurationActivity : ComponentActivity() {
         enableEdgeToEdge()
         actionBar?.hide()
         setContent {
+            val darkTheme = prefersDarkTheme()
+            SideEffect {
+                val bars = WindowCompat.getInsetsController(window, window.decorView)
+                bars.isAppearanceLightStatusBars = !darkTheme
+                bars.isAppearanceLightNavigationBars = !darkTheme
+            }
             Content(
                 connectionStatus = deviceServiceConnection.connectionStatusFlow.collectAsState().value,
                 enabledSettingIds = enabledSettingIds.collectAsState().value,
@@ -149,6 +159,8 @@ class SettingWidgetConfigurationActivity : ComponentActivity() {
                     )
                 },
                 isCompactLayout = isCompactLayout.collectAsState().value ?: false,
+                darkTheme = darkTheme,
+                dynamicColor = prefersDynamicColor(),
                 onCompactLayoutChange = { newValue ->
                     val context = this
                     lifecycleScope.launch {
@@ -223,11 +235,13 @@ private fun Content(
     onFinish: () -> Unit,
     onSetSettingIdEnabled: (deviceModel: String, settingId: String, isEnabled: Boolean) -> Unit,
     isCompactLayout: Boolean,
+    darkTheme: Boolean,
+    dynamicColor: Boolean,
     onCompactLayoutChange: (Boolean) -> Unit,
 ) {
     var screen by remember { mutableStateOf(Screen.EnabledSettings) }
     val isConnected = connectionStatus is ConnectionStatus.Connected
-    OpenSCQ30Theme {
+    OpenSCQ30Theme(darkTheme = darkTheme, dynamicColor = dynamicColor) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
