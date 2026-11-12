@@ -1,6 +1,10 @@
 ## About
 
-OpenSCQ30 is free software for controlling settings for Soundcore headphones and earbuds. It was originally intended for the Soundcore Life Q30, after which the project was named, but a range of devices are now supported.
+This project is a Nothing OS inspired remix of the original [OpenSCQ30](https://github.com/Oppzippy/OpenSCQ30), which provides controls for Soundcore headphones and earbuds. This remix currently supports the **Soundcore Liberty 4 NC** only.
+
+### Screenshot
+
+![OpenSCQ30 desktop screenshot](screenshots/gui-sound-modes.png)
 
 ### Supported Platforms
 
@@ -10,51 +14,11 @@ OpenSCQ30 is free software for controlling settings for Soundcore headphones and
 
 ### Supported Devices
 
-If there's a device not in this list that you want to see supported, check if there's an issue for it, and give the issue for it a 👍 so that I can sort by reactions and prioritize. Otherwise, please open an issue to request support for the device.
+This remix currently supports the following device:
 
 | Model  | Name                         |
 | ------ | ---------------------------- |
-| A3004  | Soundcore Q20I               |
-| A3005  | Soundcore Q11i               |
-| A3027  | Soundcore Life Q35           |
-| A3028  | Soundcore Q30 / Life Q30     |
-| A3029  | Soundcore Life Tune          |
-| A3030  | Soundcore Life Tune Pro      |
-| A3031  | Soundcore Vortex             |
-| A3033  | Soundcore Life 2 Neo         |
-| A3035  | Soundcore Space One          |
-| A3040  | Soundcore Space Q45          |
-| A3062  | Soundcore Space One Pro      |
-| A3116  | Soundcore Motion+            |
-| A3330  | Soundcore C30i               |
-| A3388  | Soundcore AeroClip           |
-| A3876  | Soundcore V20i               |
-| A3909  | Soundcore Liberty 2 Pro      |
-| A3926  | Soundcore Life Dot 2S        |
-| A3930  | Soundcore Liberty 2 Pro+     |
-| A3931  | Soundcore Life Dot 2 NC      |
-| A3933  | Soundcore Life Note 3        |
-| A3935  | Soundcore Life A2 NC         |
-| A3936  | Soundcore Space A40          |
-| A3939  | Soundcore Life P3            |
-| A3944  | Soundcore Life P2 Mini       |
-| A3945  | Soundcore Life Note 3S       |
 | A3947  | Soundcore Liberty 4 NC       |
-| A3948  | Soundcore A20i               |
-| A3949  | Soundcore P20i / P25i / R50i |
-| A3951  | Soundcore Liberty Air 2 Pro  |
-| A3952  | Soundcore Liberty 3 Pro      |
-| A3953  | Soundcore Liberty 4          |
-| A3954  | Soundcore Liberty 4 Pro      |
-| A3955  | Soundcore P40i               |
-| A3957  | Soundcore Liberty 5          |
-| A3959  | Soundcore P30i / R50i NC     |
-| A3968  | Soundcore Sport X20          |
-| D1101  | Soundcore C50i               |
-| D1202  | Soundcore P31i               |
-| D1202C | Soundcore R60i NC            |
-| D1301  | Soundcore Sleep A30          |
-| D1402  | Soundcore Space 2            |
 
 ## Installing
 
@@ -102,3 +66,4 @@ See [docs/development.md](docs/development.md)
 ## Running Tests
 
 `just test` will run all unit and integration tests. To run tests for a specific package, use `just gui/ test` for example.
+
