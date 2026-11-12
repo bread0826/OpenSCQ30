@@ -13,12 +13,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -92,91 +94,100 @@ private fun FallbackSettingCategoryScreen(
         setSettings(listOf(Pair(settingId, value)))
     }
     Column(
-        modifier = Modifier.verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         settings.forEach { (settingId, setting) ->
             val name = translateSettingId(settingId)
-            when (setting) {
-                is Setting.ToggleSetting -> Toggle(
-                    name = name,
-                    isEnabled = setting.value,
-                    onChange = { setSetting(settingId, it.toValue()) },
-                )
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                    when (setting) {
+                        is Setting.ToggleSetting -> Toggle(
+                            name = name,
+                            isEnabled = setting.value,
+                            onChange = { setSetting(settingId, it.toValue()) },
+                        )
 
-                is Setting.EqualizerSetting -> Equalizer(
-                    name = name,
-                    setting = setting,
-                    onChange = { setSetting(settingId, it.toValue()) },
-                )
+                        is Setting.EqualizerSetting -> Equalizer(
+                            name = name,
+                            setting = setting,
+                            onChange = { setSetting(settingId, it.toValue()) },
+                        )
 
-                is Setting.I32RangeSetting -> I32Range(
-                    name = name,
-                    range = setting.setting,
-                    value = setting.value,
-                    onChange = { setSetting(settingId, it.toValue()) },
-                )
+                        is Setting.I32RangeSetting -> I32Range(
+                            name = name,
+                            range = setting.setting,
+                            value = setting.value,
+                            onChange = { setSetting(settingId, it.toValue()) },
+                        )
 
-                is Setting.InformationSetting -> InformationSetting(name, setting.translatedValue)
+                        is Setting.InformationSetting -> InformationSetting(name, setting.translatedValue)
 
-                is Setting.SelectSetting -> StandardSelect(
-                    name = name,
-                    setting = setting,
-                    onChange = { setSetting(settingId, it.toValue()) },
-                )
+                        is Setting.SelectSetting -> StandardSelect(
+                            name = name,
+                            setting = setting,
+                            onChange = { setSetting(settingId, it.toValue()) },
+                        )
 
-                is Setting.OptionalSelectSetting -> OptionalSelect(
-                    name = name,
-                    setting = setting,
-                    onChange = { setSetting(settingId, it.toValue()) },
-                )
+                        is Setting.OptionalSelectSetting -> OptionalSelect(
+                            name = name,
+                            setting = setting,
+                            onChange = { setSetting(settingId, it.toValue()) },
+                        )
 
-                is Setting.PresetEqualizerProfileSelect -> OptionalSelect(
-                    name = name,
-                    setting = Setting.OptionalSelectSetting(setting = setting.select, value = setting.value),
-                    onChange = { setSetting(settingId, it.toValue()) },
-                )
+                        is Setting.PresetEqualizerProfileSelect -> OptionalSelect(
+                            name = name,
+                            setting = Setting.OptionalSelectSetting(
+                                setting = setting.select,
+                                value = setting.value,
+                            ),
+                            onChange = { setSetting(settingId, it.toValue()) },
+                        )
 
-                is Setting.ModifiableSelectSetting -> ModifiableSelect(
-                    name = name,
-                    setting = setting,
-                    onChange = { setSetting(settingId, it) },
-                )
+                        is Setting.ModifiableSelectSetting -> ModifiableSelect(
+                            name = name,
+                            setting = setting,
+                            onChange = { setSetting(settingId, it) },
+                        )
 
-                is Setting.MultiSelectSetting -> MultiSelect(
-                    name = name,
-                    setting = setting,
-                    onChange = { setSetting(settingId, it) },
-                )
+                        is Setting.MultiSelectSetting -> MultiSelect(
+                            name = name,
+                            setting = setting,
+                            onChange = { setSetting(settingId, it) },
+                        )
 
-                is Setting.HueColorPicker -> HueColorPicker(
-                    name = name,
-                    hue = setting.hue,
-                    onChange = { setSetting(settingId, it.toValue()) },
-                )
+                        is Setting.HueColorPicker -> HueColorPicker(
+                            name = name,
+                            hue = setting.hue,
+                            onChange = { setSetting(settingId, it.toValue()) },
+                        )
 
-                is Setting.MultiSelectWithRemoveSetting -> MultiSelectWithRemove(
-                    name = name,
-                    setting = setting,
-                    onChange = { setSetting(settingId, it) },
-                )
+                        is Setting.MultiSelectWithRemoveSetting -> MultiSelectWithRemove(
+                            name = name,
+                            setting = setting,
+                            onChange = { setSetting(settingId, it) },
+                        )
 
-                is Setting.ImportStringSetting -> ImportString(
-                    name = name,
-                    confirmationMessage = setting.confirmationMessage,
-                    onImport = { setSetting(settingId, it.toValue()) },
-                )
+                        is Setting.ImportStringSetting -> ImportString(
+                            name = name,
+                            confirmationMessage = setting.confirmationMessage,
+                            onImport = { setSetting(settingId, it.toValue()) },
+                        )
 
-                is Setting.Action -> Action(
-                    name = name,
-                    onExecute = { setSetting(settingId, true.toValue()) },
-                )
+                        is Setting.Action -> Action(
+                            name = name,
+                            onExecute = { setSetting(settingId, true.toValue()) },
+                        )
 
-                is Setting.TimeOfDay -> TimeOfDay(
-                    name = name,
-                    time = setting.getLocalTime(),
-                    onChange = { setSetting(settingId, (it.hour * 60 + it.minute).toValue()) },
-                )
+                        is Setting.TimeOfDay -> TimeOfDay(
+                            name = name,
+                            time = setting.getLocalTime(),
+                            onChange = { setSetting(settingId, (it.hour * 60 + it.minute).toValue()) },
+                        )
+                    }
+                }
             }
         }
     }

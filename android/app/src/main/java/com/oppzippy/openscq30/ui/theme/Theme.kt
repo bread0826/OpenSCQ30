@@ -2,15 +2,23 @@ package com.oppzippy.openscq30.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceTheme
 import androidx.glance.material3.ColorProviders
+
+private val menuShapes = Shapes(
+    medium = RoundedCornerShape(18.dp),
+    large = RoundedCornerShape(24.dp),
+)
 
 private val lightColorScheme = lightColorScheme(
     primary = primaryLight,
@@ -20,6 +28,7 @@ private val lightColorScheme = lightColorScheme(
     secondary = secondaryLight,
     onSecondary = onSecondaryLight,
     secondaryContainer = secondaryContainerLight,
+    onSecondaryContainer = onSecondaryContainerLight,
     onSecondaryContainer = onSecondaryContainerLight,
     tertiary = tertiaryLight,
     onTertiary = onTertiaryLight,
@@ -32,6 +41,7 @@ private val lightColorScheme = lightColorScheme(
     background = backgroundLight,
     onBackground = onBackgroundLight,
     surface = surfaceLight,
+    surfaceTint = primaryLight,
     onSurface = onSurfaceLight,
     surfaceVariant = surfaceVariantLight,
     onSurfaceVariant = onSurfaceVariantLight,
@@ -59,6 +69,7 @@ private val darkColorScheme = darkColorScheme(
     onSecondary = onSecondaryDark,
     secondaryContainer = secondaryContainerDark,
     onSecondaryContainer = onSecondaryContainerDark,
+    onSecondaryContainer = onSecondaryContainerDark,
     tertiary = tertiaryDark,
     onTertiary = onTertiaryDark,
     tertiaryContainer = tertiaryContainerDark,
@@ -70,6 +81,7 @@ private val darkColorScheme = darkColorScheme(
     background = backgroundDark,
     onBackground = onBackgroundDark,
     surface = surfaceDark,
+    surfaceTint = primaryDark,
     onSurface = onSurfaceDark,
     surfaceVariant = surfaceVariantDark,
     onSurfaceVariant = onSurfaceVariantDark,
@@ -104,7 +116,7 @@ fun ThemeType?.prefersDarkTheme(): Boolean = when (this) {
 @Composable
 fun OpenSCQ30Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
@@ -121,12 +133,13 @@ fun OpenSCQ30Theme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = menuShapes,
         content = content,
     )
 }
 
 @Composable
-fun OpenSCQ30GlanceTheme(dynamicColor: Boolean = true, content: @Composable () -> Unit) {
+fun OpenSCQ30GlanceTheme(dynamicColor: Boolean = false, content: @Composable () -> Unit) {
     GlanceTheme(
         colors = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && dynamicColor) {
             GlanceTheme.colors

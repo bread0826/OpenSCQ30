@@ -17,6 +17,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -37,6 +38,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.oppzippy.openscq30.R
@@ -77,8 +80,18 @@ fun Select(
                         ),
                     ) {
                         itemsIndexed(options) { index, value ->
+                            val isSelected = index == selectedIndex
+                            val colors = MaterialTheme.colorScheme
                             TextButton(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth().semantics { selected = isSelected },
+                                colors = if (isSelected) {
+                                    ButtonDefaults.textButtonColors(
+                                        containerColor = colors.primaryContainer,
+                                        contentColor = colors.onPrimaryContainer,
+                                    )
+                                } else {
+                                    ButtonDefaults.textButtonColors(contentColor = colors.onSurface)
+                                },
                                 onClick = {
                                     isPickerOpen = false
                                     onSelect(index)

@@ -52,12 +52,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.oppzippy.openscq30.R
 import com.oppzippy.openscq30.lib.wrapper.Setting
 import java.text.NumberFormat
@@ -66,7 +62,6 @@ import kotlinx.coroutines.Job
 private const val LIBERTY_4_NC = "SoundcoreA3947"
 internal const val AMBIENT_SOUND_MODE = "ambientSoundMode"
 private const val SOUND_MODES = "soundModes"
-private val headingFont = FontFamily(Font(R.font.doto))
 
 private enum class NoiseMode(val deviceValue: String, @param:StringRes val label: Int) {
     Anc("NoiseCanceling", R.string.studio_anc),
@@ -92,7 +87,6 @@ internal fun ConnectedDeviceScreen(
     deviceModel: String,
     settings: Map<String, Setting>,
     categories: List<String>,
-    darkTheme: Boolean,
     onSettings: () -> Unit,
     onCategory: (String) -> Unit,
     onMoreSettings: () -> Unit,
@@ -100,7 +94,7 @@ internal fun ConnectedDeviceScreen(
 ) {
     val isLiberty = deviceModel == LIBERTY_4_NC
     val colorScheme = MaterialTheme.colorScheme
-    val accent = Color(0xFFF33D1D)
+    val accent = colorScheme.primary
     val textButtonColors = ButtonDefaults.textButtonColors(contentColor = colorScheme.onSurface)
     val mode = settings[AMBIENT_SOUND_MODE] as? Setting.SelectSetting
     val modes = NoiseMode.entries.filter { it.deviceValue in mode?.setting?.options.orEmpty() }
@@ -129,7 +123,7 @@ internal fun ConnectedDeviceScreen(
                 ) {
                     Text(
                         stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.weight(1f),
                     )
                     IconButton(onClick = onSettings) {
@@ -150,9 +144,6 @@ internal fun ConnectedDeviceScreen(
                         contentDescription = deviceName
                     },
                     style = MaterialTheme.typography.headlineSmall,
-                    fontFamily = headingFont,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 0.4.sp,
                 )
 
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -205,7 +196,7 @@ internal fun ConnectedDeviceScreen(
                         .fillMaxWidth()
                         .selectableGroup()
                         .clip(RoundedCornerShape(32.dp))
-                        .background(if (darkTheme) Color(0xFF252525) else Color(0xFFEAE4DE))
+                        .background(colorScheme.surfaceVariant)
                         .padding(4.dp)
                     val content: @Composable (NoiseMode, Modifier) -> Unit = { option, modifier ->
                         val selected = option.deviceValue == mode?.value
@@ -214,13 +205,7 @@ internal fun ConnectedDeviceScreen(
                                 .heightIn(min = 48.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (selected && darkTheme) {
-                                        Color(0xFF383838)
-                                    } else if (selected) {
-                                        Color(0xFFFCF8F3)
-                                    } else {
-                                        Color.Transparent
-                                    },
+                                    if (selected) colorScheme.surfaceBright else Color.Transparent,
                                 )
                                 .selectable(
                                     selected = selected,

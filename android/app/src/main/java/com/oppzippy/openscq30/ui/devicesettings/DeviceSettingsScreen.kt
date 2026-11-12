@@ -42,7 +42,6 @@ import com.oppzippy.openscq30.ui.devicesettings.screens.QuickPresetsScreen
 import com.oppzippy.openscq30.ui.devicesettings.screens.SettingCategoryScreen
 import com.oppzippy.openscq30.ui.devicesettings.screens.StatusNotificationScreen
 import com.oppzippy.openscq30.ui.settings.SettingsPage
-import com.oppzippy.openscq30.ui.theme.OpenSCQ30Theme
 import com.oppzippy.openscq30.ui.utils.Loading
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -51,7 +50,6 @@ import kotlinx.coroutines.flow.Flow
 fun DeviceSettingsScreen(
     onBack: () -> Unit = {},
     connectionStatus: ConnectionStatus,
-    darkTheme: Boolean,
     onSoundMode: (String) -> Job,
     setSettingValues: (settingValues: List<Pair<String, Value>>) -> Unit,
     allSettingsFlow: Flow<List<Pair<String, Setting>>>,
@@ -74,7 +72,6 @@ fun DeviceSettingsScreen(
         is ConnectionStatus.Connected -> {
             DeviceSettingsNavigationScreen(
                 connectionStatus = connectionStatus,
-                darkTheme = darkTheme,
                 onSoundMode = onSoundMode,
                 onBack = onBack,
                 setSettingValues = setSettingValues,
@@ -108,7 +105,6 @@ fun DeviceSettingsScreen(
 @Composable
 private fun DeviceSettingsNavigationScreen(
     connectionStatus: ConnectionStatus.Connected,
-    darkTheme: Boolean,
     onSoundMode: (String) -> Job,
     onBack: () -> Unit = {},
     setSettingValues: (settingValues: List<Pair<String, Value>>) -> Unit,
@@ -215,21 +211,18 @@ private fun DeviceSettingsNavigationScreen(
         ) {
             composable<Screen.Dashboard> {
                 val settings by allSettingsFlow.collectAsState(emptyList())
-                OpenSCQ30Theme(darkTheme = darkTheme, dynamicColor = false) {
-                    ConnectedDeviceScreen(
-                        deviceName = deviceName,
-                        deviceModel = deviceModel,
-                        settings = settings.toMap(),
-                        categories = categoryIds,
-                        darkTheme = darkTheme,
-                        onSettings = { navController.navigate(Screen.AppSettings) { launchSingleTop = true } },
-                        onCategory = { id ->
-                            navController.navigate(Screen.SettingsCategory(id)) { launchSingleTop = true }
-                        },
-                        onMoreSettings = { navController.navigate(Screen.ScreenSelection) { launchSingleTop = true } },
-                        onSoundMode = onSoundMode,
-                    )
-                }
+                ConnectedDeviceScreen(
+                    deviceName = deviceName,
+                    deviceModel = deviceModel,
+                    settings = settings.toMap(),
+                    categories = categoryIds,
+                    onSettings = { navController.navigate(Screen.AppSettings) { launchSingleTop = true } },
+                    onCategory = { id ->
+                        navController.navigate(Screen.SettingsCategory(id)) { launchSingleTop = true }
+                    },
+                    onMoreSettings = { navController.navigate(Screen.ScreenSelection) { launchSingleTop = true } },
+                    onSoundMode = onSoundMode,
+                )
             }
 
             composable<Screen.AppSettings> {

@@ -1,13 +1,12 @@
 package com.oppzippy.openscq30.ui.devicesettings.screens.categoryoverrides
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -16,11 +15,13 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -31,14 +32,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.oppzippy.openscq30.R
 import com.oppzippy.openscq30.lib.bindings.translateSettingId
@@ -50,8 +46,6 @@ import com.oppzippy.openscq30.lib.wrapper.toValue
 import com.oppzippy.openscq30.ui.devicesettings.composables.Equalizer
 import com.oppzippy.openscq30.ui.devicesettings.composables.ReadOnlyEqualizer
 import com.oppzippy.openscq30.ui.utils.ModifiableSelect
-import kotlin.math.cos
-import kotlin.math.sin
 
 private const val SETTING_ID_PRESET_EQUALIZER_PROFILE = "presetEqualizerProfile"
 private const val SETTING_ID_CUSTOM_EQUALIZER_PROFILE = "customEqualizerProfile"
@@ -149,8 +143,8 @@ object SoundcoreEqualizerScreen : CategoryOverride {
             if (selectedTabIndex == 0) {
                 Preset(
                     lazyListState = presetLazyListState,
-                    options = presetEqualizerProfile.select.options,
-                    localizedOptions = presetEqualizerProfile.select.localizedOptions,
+                    localizedOptions = presetEqualizerProfile.select.localizedOptions
+                        .take(presetEqualizerProfile.select.options.size),
                     volumeAdjustments = presetEqualizerProfile.presets,
                     selectedIndex = selectedPresetIndex,
                     equalizer = presetEqualizerProfile.equalizer,
@@ -204,7 +198,6 @@ private inline fun <reified T> getSettingById(settings: List<Pair<String, Settin
 
 @Composable
 private fun Preset(
-    options: List<String>,
     localizedOptions: List<String>,
     volumeAdjustments: List<List<Short>>,
     equalizer: Equalizer,
@@ -214,23 +207,17 @@ private fun Preset(
 ) {
     LazyColumn(
         state = lazyListState,
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier.selectableGroup(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        itemsIndexed(
-            options.zip(localizedOptions).zip(volumeAdjustments),
-        ) { index, (optionAndLocalizedOption, volumeAdjustments) ->
-            val option = optionAndLocalizedOption.first
-            val localizedOption = optionAndLocalizedOption.second
-            // we want spacing before the first item, so use a spacer rather than LazyColumn's verticalArrangement
-            Spacer(Modifier.height(16.dp))
+        itemsIndexed(localizedOptions.zip(volumeAdjustments)) { index, (name, adjustments) ->
             PresetCard(
-                index = index,
-                option = option,
-                localizedOption = localizedOption,
+                name = name,
                 isSelected = index == selectedIndex,
-                volumeAdjustments = volumeAdjustments,
+                volumeAdjustments = adjustments,
                 equalizer = equalizer,
-                onSelected = onSelected,
+                onClick = { onSelected(index) },
             )
         }
     }
@@ -238,124 +225,52 @@ private fun Preset(
 
 @Composable
 private fun PresetCard(
-    index: Int,
-    option: String,
-    localizedOption: String,
+    name: String,
     equalizer: Equalizer,
     volumeAdjustments: List<Short>,
     isSelected: Boolean,
-    onSelected: (Int) -> Unit,
+    onClick: () -> Unit,
 ) {
-    val gradient = presetGradients.getOrDefault(option, fallbackPresetGradient)
+    val colors = MaterialTheme.colorScheme
     Card(
-        Modifier
-            .height(120.dp)
-            .padding(4.dp)
-            .clickable { onSelected(index) },
-        colors = CardDefaults.cardColors(containerColor = gradient?.left ?: Color.Unspecified),
+        modifier = Modifier.fillMaxWidth(),
+        border = BorderStroke(1.dp, if (isSelected) colors.primary else colors.outlineVariant),
+        colors = CardDefaults.cardColors(containerColor = colors.surfaceContainerLow),
     ) {
-        Box(
-            modifier = Modifier.drawBehind {
-                // hacky angled gradient. only works when the angle is close to 90 degrees,
-                // since otherwise rightSideY will be extraordinarily high, leading to most of
-                // the gradient being off the top of the screen
-
-                val angle = Math.toRadians(90 - gradient.angleInDegrees * -1)
-                val x = cos(angle)
-                val y = sin(angle)
-                val slope = y / x
-                val rightSideY = size.width * slope
-
-                drawRect(
-                    brush = Brush.linearGradient(
-                        colors = listOf(gradient.left, gradient.right),
-                        start = Offset(0f, 0f),
-                        end = Offset(size.width, rightSideY.toFloat()),
-                    ),
-                    size = size,
-                )
-            },
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .selectable(selected = isSelected, role = Role.RadioButton, onClick = onClick)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (isSelected) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
-                    // fake shadow since using Modifier.shadow with CircleShape doesn't show the shadow inside the
-                    // transparent checkmark
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                if (isSelected) {
                     Icon(
-                        modifier = Modifier.blur(2.dp),
-                        tint = Color.Black.copy(alpha = 0.5f),
                         painter = painterResource(R.drawable.check_circle_24px),
                         contentDescription = null,
-                    )
-                    Icon(
-                        tint = Color.White,
-                        painter = painterResource(R.drawable.check_circle_24px),
-                        contentDescription = stringResource(R.string.selected),
+                        tint = colors.primary,
                     )
                 }
             }
-
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                ReadOnlyEqualizer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(85.dp)
-                        .padding(16.dp),
-                    color = Color.White,
-                    bands = equalizer.bandHz,
-                    values = volumeAdjustments,
-                    minValue = equalizer.min,
-                    maxValue = equalizer.max,
-                    fractionDigits = equalizer.fractionDigits,
-                    drawHorizontalGuide = false,
-                )
-            }
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                contentAlignment = Alignment.BottomStart,
-            ) {
-                Text(
-                    text = localizedOption,
-                    style = LocalTextStyle.current.copy(
-                        color = Color.White,
-                        shadow = Shadow(color = Color.Black, blurRadius = 5f),
-                    ),
-                )
-            }
+            ReadOnlyEqualizer(
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                color = if (isSelected) colors.primary else colors.onSurfaceVariant,
+                bands = equalizer.bandHz,
+                values = volumeAdjustments,
+                minValue = equalizer.min,
+                maxValue = equalizer.max,
+                fractionDigits = equalizer.fractionDigits,
+                drawHorizontalGuide = false,
+            )
         }
     }
 }
-
-val fallbackPresetGradient = Gradient(84.31, Color(0xFF666666), Color(0xFFAAAAAA))
-val presetGradients = hashMapOf(
-    "SoundcoreSignature" to Gradient(84.31, Color(0xFFF066CD), Color(0xFF98D3FA)),
-    "Acoustic" to Gradient(84.31, Color(0xFFAE6F13), Color(0xFFFEBF63)),
-    "Balanced" to Gradient(84.31, Color(0xFFAE6F13), Color(0xFFFEBF63)),
-    "BassBooster" to Gradient(84.31, Color(0xFF5320F1), Color(0xFFA370FF)),
-    "BassReducer" to Gradient(84.31, Color(0xFF4283F6), Color(0xFF60DCDF)),
-    "VolumeBooster" to Gradient(84.31, Color(0xFF4283F6), Color(0xFF60DCDF)),
-    "Classical" to Gradient(95.69, Color(0xFF111B2B), Color(0xFFE69E52)),
-    "Podcast" to Gradient(84.31, Color(0xFFC33231), Color(0xFFF98D34)),
-    "Dance" to Gradient(95.69, Color(0xFFE7407B), Color(0xFF733BE0)),
-    "Deep" to Gradient(84.31, Color(0xFF18289A), Color(0xFF6878EA)),
-    "Electronic" to Gradient(84.31, Color(0xFF4A3DB8), Color(0xFFE782CF)),
-    "Flat" to Gradient(84.31, Color(0xFF236929), Color(0xFF73B979)),
-    "HipHop" to Gradient(84.31, Color(0xFFF06C14), Color(0xFFEDC359)),
-    "Jazz" to Gradient(84.31, Color(0xFF2C65AD), Color(0xFFB7B2AF)),
-    "Latin" to Gradient(84.31, Color(0xFF7C4C3A), Color(0xFF997F5A)),
-    "Lounge" to Gradient(84.31, Color(0xFF5D9FD6), Color(0xFFE1B584)),
-    "Piano" to Gradient(95.69, Color(0xFFE69E52), Color(0xFF111B2B)),
-    "Pop" to Gradient(95.69, Color(0xFFE91D94), Color(0xFF13ACFC)),
-    "RnB" to Gradient(84.31, Color(0xFF639EFA), Color(0xFFB3EEFF)),
-    "Rock" to Gradient(95.69, Color(0xFFD11836), Color(0xFF733BE0)),
-    "SmallSpeakers" to Gradient(84.31, Color(0xFF733BE0), Color(0xFFE7407B)),
-    "SpokenWord" to Gradient(84.31, Color(0xFF60DCDF), Color(0xFF4283F6)),
-    "TrebleBooster" to Gradient(95.69, Color(0xFF733BE0), Color(0xFFD11836)),
-    "TrebleReducer" to Gradient(84.31, Color(0xFF2A62C8), Color(0xFFB784DC)),
-)
-
-data class Gradient(val angleInDegrees: Double, val left: Color, val right: Color)
 
 @Composable
 fun Custom(

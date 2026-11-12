@@ -131,7 +131,7 @@
     <string name="studio_battery_case">Case</string>
     <string name="studio_battery">Battery</string>
     <string name="studio_battery_unavailable">Unavailable</string>
-    <string name="studio_dynamic_color_summary">Use wallpaper colours on supported screens. The connected device screen uses its own palette.</string>
+    <string name="studio_dynamic_color_summary">Use wallpaper colours throughout the app on supported devices.</string>
     <string name="studio_material_you">Material You</string>
     <string name="studio_system">System</string>
 </resources>
