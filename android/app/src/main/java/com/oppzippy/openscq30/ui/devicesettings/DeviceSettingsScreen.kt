@@ -14,6 +14,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -248,7 +249,10 @@ private fun DeviceSettingsNavigationScreen(
             }
             composable<Screen.SettingsCategory> { backStackEntry ->
                 val route = backStackEntry.toRoute<Screen.SettingsCategory>()
-                val settings by getSettingsInCategoryFlow(route.categoryId).collectAsState(emptyList())
+                val settingsFlow = remember(route.categoryId, getSettingsInCategoryFlow) {
+                    getSettingsInCategoryFlow(route.categoryId)
+                }
+                val settings by settingsFlow.collectAsState(emptyList())
                 SettingCategoryScreen(
                     deviceModel = deviceModel,
                     categoryId = route.categoryId,

@@ -280,17 +280,20 @@ internal fun ConnectedDeviceScreen(
                         }
                     }
                 }
-                if (SOUND_MODES in categories && modes.isNotEmpty()) {
-                    TextButton(
-                        onClick = { onCategory(SOUND_MODES) },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = textButtonColors,
-                    ) {
-                        Text(stringResource(R.string.studio_sound_mode_settings))
+                val settingsLinks: @Composable (Modifier) -> Unit = { modifier ->
+                    if (SOUND_MODES in categories && modes.isNotEmpty()) {
+                        TextButton(onClick = { onCategory(SOUND_MODES) }, modifier = modifier, colors = textButtonColors) {
+                            Text(stringResource(R.string.studio_sound_mode_settings), textAlign = TextAlign.Center)
+                        }
+                    }
+                    TextButton(onClick = onMoreSettings, modifier = modifier, colors = textButtonColors) {
+                        Text(stringResource(R.string.studio_more_settings), textAlign = TextAlign.Center)
                     }
                 }
-                TextButton(onClick = onMoreSettings, modifier = Modifier.fillMaxWidth(), colors = textButtonColors) {
-                    Text(stringResource(R.string.studio_more_settings))
+                if (stackControls) {
+                    Column { settingsLinks(Modifier.fillMaxWidth()) }
+                } else {
+                    Row { settingsLinks(Modifier.weight(1f)) }
                 }
             }
         }

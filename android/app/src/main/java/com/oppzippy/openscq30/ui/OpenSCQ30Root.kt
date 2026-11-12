@@ -28,19 +28,27 @@ import com.oppzippy.openscq30.ui.deviceselection.DeviceSelectionScreen
 import com.oppzippy.openscq30.ui.devicesettings.DeviceSettingsScreen
 import com.oppzippy.openscq30.ui.devicesettings.screens.AMBIENT_SOUND_MODE
 import com.oppzippy.openscq30.ui.theme.OpenSCQ30Theme
+import com.oppzippy.openscq30.ui.theme.backgroundDark
+import com.oppzippy.openscq30.ui.theme.backgroundLight
 import com.oppzippy.openscq30.ui.utils.Loading
 
 @Composable
 fun OpenSCQ30Root(viewModel: OpenSCQ30RootViewModel = hiltViewModel()) {
     viewModel.toastHandler.Show()
     val darkTheme = prefersDarkTheme()
+    val connectionStatus by viewModel.connectionStatusFlow.collectAsState()
     OpenSCQ30Theme(
         darkTheme = darkTheme,
         dynamicColor = prefersDynamicColor(),
     ) {
+        val windowBackground = when {
+            connectionStatus !is ConnectionStatus.Connected -> MaterialTheme.colorScheme.background
+            darkTheme -> backgroundDark
+            else -> backgroundLight
+        }
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
+            color = windowBackground,
         ) {
             Box(Modifier.safeDrawingPadding()) {
                 if (viewModel.version2BreakingChangesMessage.shouldShow.collectAsState(false).value) {
@@ -49,8 +57,6 @@ fun OpenSCQ30Root(viewModel: OpenSCQ30RootViewModel = hiltViewModel()) {
                         onClose = { viewModel.version2BreakingChangesMessage.setShown() },
                     )
                 }
-
-                val connectionStatus by viewModel.connectionStatusFlow.collectAsState()
 
                 val isConnected =
                     connectionStatus is ConnectionStatus.Connected || connectionStatus is ConnectionStatus.Connecting
