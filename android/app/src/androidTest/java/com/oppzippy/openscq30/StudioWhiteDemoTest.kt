@@ -1,6 +1,7 @@
 package com.oppzippy.openscq30
 
 import android.graphics.Bitmap
+import android.os.ParcelFileDescriptor
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isSelected
@@ -40,7 +41,7 @@ class StudioWhiteDemoTest : OpenSCQ30RootTestBase() {
         openShortcut(R.string.studio_controls, "buttonConfiguration")
         openShortcut(R.string.studio_sound_mode_settings, "soundModes")
         openMoreDeviceSettings()
-        composeRule.onNodeWithText(translateCategoryId("general")).assertIsDisplayed()
+        composeRule.onNodeWithText(translateCategoryId("deviceInformation")).assertIsDisplayed()
         back()
 
         composeRule.activityRule.scenario.recreate()
@@ -48,6 +49,26 @@ class StudioWhiteDemoTest : OpenSCQ30RootTestBase() {
         composeRule.onNodeWithContentDescription(getString(R.string.settings)).performClick()
         composeRule.onNodeWithText(getString(R.string.dark)).assertIsDisplayed()
         back()
+
+        chooseTheme(R.string.studio_system)
+        shell("cmd uimode night yes")
+        awaitSurface(0x141414)
+        shell("cmd uimode night no")
+        awaitSurface(0xF7F2ED)
+
+        val deviceName = translateDeviceModel("SoundcoreA3947")
+        shell("input keyevent KEYCODE_BACK")
+        composeRule.waitUntil(5000) {
+            composeRule.onAllNodes(hasText(deviceName)).fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText(deviceName).performClick()
+        selectMode(R.string.studio_anc)
+
+        shell("wm size 720x1280")
+        shell("settings put system font_scale 1.5")
+        composeRule.waitUntil(5000) { composeRule.activity.resources.configuration.fontScale > 1.4f }
+        selectMode(R.string.studio_transparency)
+        openShortcut(R.string.studio_controls, "buttonConfiguration")
     }
 
     private fun checkBattery(label: Int, value: String) {
@@ -82,10 +103,24 @@ class StudioWhiteDemoTest : OpenSCQ30RootTestBase() {
     private fun capture(name: String, surface: Int) {
         composeRule.onNodeWithContentDescription(getString(R.string.settings)).performScrollTo()
         composeRule.waitForIdle()
-        val screenshot = checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
-        assertEquals(surface, screenshot.getPixel(8, screenshot.height / 3) and 0xFFFFFF)
+        val screenshot = screenshot()
+        assertEquals(surface, screenshot.surfaceColor())
         composeRule.activity.openFileOutput(name, 0).use {
             assertTrue(screenshot.compress(Bitmap.CompressFormat.PNG, 100, it))
         }
+    }
+
+    private fun awaitSurface(surface: Int) {
+        composeRule.waitUntil(5000) { screenshot().surfaceColor() == surface }
+    }
+
+    private fun screenshot(): Bitmap =
+        checkNotNull(InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot())
+
+    private fun Bitmap.surfaceColor(): Int = getPixel(8, height / 3) and 0xFFFFFF
+
+    private fun shell(command: String) {
+        val automation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        ParcelFileDescriptor.AutoCloseInputStream(automation.executeShellCommand(command)).use { it.readBytes() }
     }
 }
