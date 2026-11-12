@@ -36,6 +36,7 @@ class MigrateLegacyEqualizerProfilesTest : OpenSCQ30RootTestBase() {
         )
         addAndConnectToDemoDevice(composeRule, translateDeviceModel("SoundcoreA3028"))
 
+        openMoreDeviceSettings()
         composeRule.onNodeWithText(getString(R.string.migrate_legacy_equalizer_profiles)).performClick()
         composeRule.onNodeWithText(getString(R.string.migrate)).performClick()
         composeRule.onNodeWithContentDescription(getString(R.string.back)).performClick()

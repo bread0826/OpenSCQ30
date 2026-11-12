@@ -169,8 +169,10 @@ internal fun ConnectedDeviceScreen(
 
                 val batteries = when {
                     isLiberty -> listOf(BatteryReading.Left, BatteryReading.Right, BatteryReading.Case)
+
                     BatteryReading.Left.id in settings || BatteryReading.Right.id in settings ->
                         listOf(BatteryReading.Left, BatteryReading.Right)
+
                     else -> listOf(BatteryReading.Device, BatteryReading.Case).filter { it.id in settings }
                 }
                 if (batteries.isNotEmpty()) {
@@ -330,12 +332,7 @@ private fun BatteryGauge(battery: BatteryReading, rawValue: String?, modifier: M
 }
 
 @Composable
-private fun DeviceShortcut(
-    @StringRes label: Int,
-    @DrawableRes icon: Int,
-    modifier: Modifier,
-    onClick: () -> Unit,
-) {
+private fun DeviceShortcut(@StringRes label: Int, @DrawableRes icon: Int, modifier: Modifier, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
         modifier = modifier.heightIn(min = 54.dp),

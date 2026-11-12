@@ -23,9 +23,9 @@ import com.oppzippy.openscq30.R
 import com.oppzippy.openscq30.features.preferences.prefersDarkTheme
 import com.oppzippy.openscq30.features.preferences.prefersDynamicColor
 import com.oppzippy.openscq30.features.soundcoredevice.service.ConnectionStatus
+import com.oppzippy.openscq30.lib.wrapper.toValue
 import com.oppzippy.openscq30.ui.deviceselection.DeviceSelectionScreen
 import com.oppzippy.openscq30.ui.devicesettings.DeviceSettingsScreen
-import com.oppzippy.openscq30.lib.wrapper.toValue
 import com.oppzippy.openscq30.ui.devicesettings.screens.AMBIENT_SOUND_MODE
 import com.oppzippy.openscq30.ui.theme.OpenSCQ30Theme
 import com.oppzippy.openscq30.ui.utils.Loading

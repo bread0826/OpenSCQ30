@@ -87,6 +87,7 @@ class NotificationTest : OpenSCQ30RootTestBase() {
     @Test
     fun quickPresetButtonsWork() {
         addAndConnectToDemoDevice(composeRule, translateDeviceModel("SoundcoreA3028"))
+        openMoreDeviceSettings()
         // Create the quick preset
         composeRule.onNodeWithText(getString(R.string.quick_presets)).performClick()
         composeRule.onNodeWithContentDescription(getString(R.string.create)).performClick()

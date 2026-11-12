@@ -1,0 +1,69 @@
+name: Studio White demo verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/studio-white
+    paths:
+      - .github/workflows/studio-white-demo.yml
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/install-android-build-tools
+        with:
+          cache: true
+          arch: x86_64
+
+      - name: Install emulator system image
+        run: sdkmanager "emulator" "system-images;android-36;google_apis;x86_64"
+
+      - name: Start Android emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' | sudo tee /etc/udev/rules.d/99-openscq30-kvm.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          echo no | avdmanager create avd --force --name studio-white --package "system-images;android-36;google_apis;x86_64"
+          nohup "$ANDROID_HOME/emulator/emulator" -avd studio-white -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect >"$RUNNER_TEMP/emulator.log" 2>&1 </dev/null &
+          timeout 180 adb wait-for-device
+          timeout 180 bash -c 'until [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 3; done'
+          adb shell wm size 900x1920
+          adb shell wm density 360
+          adb shell input keyevent KEYCODE_WAKEUP
+          adb shell wm dismiss-keyguard
+
+      - name: Verify Liberty 4 NC demo and capture both themes
+        working-directory: android
+        run: |
+          ./gradlew connectedX86_64DebugAndroidTest \
+            -Pandroid.testInstrumentationRunnerArguments.class=com.oppzippy.openscq30.StudioWhiteDemoTest
+
+      - name: Collect screenshots
+        if: always()
+        run: |
+          mkdir -p studio-white-screenshots
+          for theme in light dark; do
+            file="studio-white-$theme.png"
+            if adb shell run-as com.oppzippy.openscq30.debug test -f "files/$file"; then
+              adb exec-out run-as com.oppzippy.openscq30.debug cat "files/$file" >"studio-white-screenshots/$file"
+            fi
+          done
+
+      - name: Upload screenshots and test report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: studio-white-demo
+          path: |
+            studio-white-screenshots
+            android/app/build/reports/androidTests/connected

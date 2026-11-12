@@ -229,7 +229,8 @@ class DeviceService : LifecycleService() {
                         Log.w(TAG, "Unable to read the Bluetooth device name", ex)
                         null
                     }
-                    connectionStatusFlow.value = ConnectionStatus.Connected(DeviceConnectionManager(device, displayName))
+                    val manager = DeviceConnectionManager(device, displayName)
+                    connectionStatusFlow.value = ConnectionStatus.Connected(manager)
                 } catch (ex: OpenScq30Exception) {
                     Log.w(TAG, "error connecting to device", ex)
                     Toast.makeText(applicationContext, R.string.error_connecting, Toast.LENGTH_SHORT).show()
